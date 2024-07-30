@@ -160,7 +160,12 @@ class BatidaDePontoApp:
 
         agora = datetime.datetime.now()
         if self.schedule:
-            proximo_horario = min(self.schedule, key=lambda x: (datetime.datetime.combine(datetime.date.today(), x[0]) - agora).total_seconds())
+            proximo_horario = min(
+                self.schedule,
+                key=lambda x: (datetime.datetime.combine(datetime.date.today(), x[0]) - agora).total_seconds()
+                if datetime.datetime.combine(datetime.date.today(), x[0]) > agora
+                else (datetime.datetime.combine(datetime.date.today() + datetime.timedelta(days=1), x[0]) - agora).total_seconds()
+            )
             proximo_horario_time, proximo_horario_str = proximo_horario
             proximo_horario_dt = datetime.datetime.combine(datetime.date.today(), proximo_horario_time)
             
