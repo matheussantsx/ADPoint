@@ -139,7 +139,7 @@ class BatidaDePontoApp:
                     self.update_status("Erro", "Formato de hora inválido: {}".format(horario))
                     return
                 hora, minuto = map(int, horario.split(':'))
-                self.schedule.append(datetime.time(hora, minuto))
+                self.schedule.append((datetime.time(hora, minuto), horario))
         
         self.automation_running = True
         self.style.configure('Running.TButton', background='#3b5998', foreground='white')
@@ -158,15 +158,21 @@ class BatidaDePontoApp:
         if not self.automation_running:
             return
 
-        agora = datetime.datetime.now().time()
+        agora = datetime.datetime.now()
         if self.schedule:
-            proximo_horario = min(self.schedule)
-            delta = datetime.datetime.combine(datetime.date.today(), proximo_horario) - datetime.datetime.combine(datetime.date.today(), agora)
+            proximo_horario = min(self.schedule, key=lambda x: (datetime.datetime.combine(datetime.date.today(), x[0]) - agora).total_seconds())
+            proximo_horario_time, proximo_horario_str = proximo_horario
+            proximo_horario_dt = datetime.datetime.combine(datetime.date.today(), proximo_horario_time)
+            
+            if proximo_horario_dt < agora:
+                proximo_horario_dt += datetime.timedelta(days=1)
+            
+            delta = proximo_horario_dt - agora
             minutos, segundos = divmod(delta.seconds, 60)
             self.update_contagem(f"Tempo até a próxima batida: {minutos} minutos e {segundos} segundos")
 
-            if agora.hour == proximo_horario.hour and agora.minute == proximo_horario.minute:
-                self.bater_ponto(proximo_horario)
+            if agora.hour == proximo_horario_time.hour and agora.minute == proximo_horario_time.minute:
+                self.bater_ponto(proximo_horario_str)
                 self.schedule.remove(proximo_horario)
 
         self.root.after(1000, self.verificar_batida)
