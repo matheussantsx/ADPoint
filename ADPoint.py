@@ -168,8 +168,9 @@ class BatidaDePontoApp:
                 proximo_horario_dt += datetime.timedelta(days=1)
             
             delta = proximo_horario_dt - agora
-            minutos, segundos = divmod(delta.seconds, 60)
-            self.update_contagem(f"Tempo até a próxima batida: {minutos} minutos e {segundos} segundos")
+            horas, segundos_restantes = divmod(delta.seconds, 3600)
+            minutos, segundos = divmod(segundos_restantes, 60)
+            self.update_contagem(f"Tempo até a próxima batida: {horas} horas e {minutos} minutos")
 
             if agora.hour == proximo_horario_time.hour and agora.minute == proximo_horario_time.minute:
                 self.bater_ponto(proximo_horario_str)
